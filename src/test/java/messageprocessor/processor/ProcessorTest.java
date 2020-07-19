@@ -1,4 +1,4 @@
-package messageprocessor.handler.processor;
+package messageprocessor.processor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,7 +6,6 @@ import messageprocessor.dto.Constants;
 import messageprocessor.dto.Input;
 import messageprocessor.dto.Result;
 import messageprocessor.exception.InvalidMessageException;
-import messageprocessor.processor.Processor;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
