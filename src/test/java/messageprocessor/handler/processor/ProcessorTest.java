@@ -12,6 +12,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by s.nathan on 19/07/2020.
@@ -42,6 +43,7 @@ public class ProcessorTest {
         assertNotNull(" Unexpected output ", output);
         try{
             Result result = toResult(output);
+            assertNull(" Unexpected output ", result);
         }catch(InvalidMessageException e) {
             assertEquals(" Wrong output ", Constants.INVALID_MESSAGE, e.getMessage());
             throw e;
