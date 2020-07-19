@@ -4,9 +4,11 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import messageprocessor.handler.dto.Constants;
-import messageprocessor.handler.exception.InvalidMessageException;
+import messageprocessor.dto.Constants;
+import messageprocessor.exception.InvalidMessageException;
+import messageprocessor.exception.UnableToStoreOutputException;
 import messageprocessor.processor.Processor;
+import messageprocessor.writer.Writer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +24,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doNothing;
 
 /**
  * Created by s.nathan on 19/07/2020.
@@ -37,18 +41,23 @@ public class MessageHandlerTest {
     SQSEvent sqsEvent;
     @Mock
     Processor processor;
+    @Mock
+    Writer writer;
 
     @Before
     public void setup() throws Exception{
         handler = new MessageHandler();
         PowerMockito.whenNew(Processor.class).withAnyArguments().thenReturn(processor);
+        PowerMockito.whenNew(Writer.class).withAnyArguments().thenReturn(writer);
     }
 
     @Test
     public void testMessageHandler() {
         when(sqsEvent.getRecords()).thenReturn(getRecords());
         when(processor.processMessage(anyString())).thenReturn(getProcessedMessage());
+        doNothing().when(writer).storeOutput(anyString(), anyString());
         String result = handler.handleRequest(sqsEvent, context);
+
         assertEquals(" Unexpected result ", "Success", result);
     }
 
@@ -60,6 +69,20 @@ public class MessageHandlerTest {
             assertNull(result);
         }catch(InvalidMessageException e) {
             assertEquals(" Unexpected result ", Constants.INVALID_MESSAGE, e.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = UnableToStoreOutputException.class)
+    public void testMessageHandler_Exception() {
+        when(sqsEvent.getRecords()).thenReturn(getRecords());
+        when(processor.processMessage(anyString())).thenReturn(getProcessedMessage());
+        doThrow(new UnableToStoreOutputException(Constants.UNABLE_TO_STORE_OUTPUT)).when(writer).storeOutput(anyString(), anyString());
+        try {
+            String result = handler.handleRequest(sqsEvent, context);
+            assertNull(result);
+        }catch(UnableToStoreOutputException e) {
+            assertEquals(" Unexpected result ", Constants.UNABLE_TO_STORE_OUTPUT, e.getMessage());
             throw e;
         }
     }
