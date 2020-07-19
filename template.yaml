@@ -11,6 +11,7 @@ Resources:
         Runtime: java8
         MemorySize: 512
         Timeout: 300
+        ReservedConcurrentExecutions: 1
         Policies:
          - SQSPollerPolicy:
             QueueName: !Ref MySqsQueue
