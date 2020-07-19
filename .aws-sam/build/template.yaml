@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Processing messages on an SQS queue with Lambda
+Resources:
+  messageprocessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: messageprocessor
+      Handler: messageprocessor.handler.MessageHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Timeout: 300
+      Policies:
+      - SQSPollerPolicy:
+          QueueName:
+            Ref: MySqsQueue
+      - DynamoDBWritePolicy:
+          TableName:
+            Ref: MyDynamoDBTable
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              Fn::GetAtt:
+              - MySqsQueue
+              - Arn
+            BatchSize: 1
+  MySqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: MySqsQueue
+      VisibilityTimeout: 300
+  MyDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: processedmessage
+      AttributeDefinitions:
+      - AttributeName: MessageId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: MessageId
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
