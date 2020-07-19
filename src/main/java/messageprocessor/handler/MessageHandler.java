@@ -16,12 +16,21 @@ public class MessageHandler implements RequestHandler<SQSEvent, String> {
 
         if(sqsEvent != null && sqsEvent.getRecords() != null) {
             for(SQSEvent.SQSMessage msg : sqsEvent.getRecords()){
+                message = msg.getBody();
+                messageId = msg.getMessageId();
             }
         }
+        printMessage(message, messageId);
 
         //process the input to get the result
         String processedMessage = new Processor().processMessage(message);
 
         return processedMessage != null ? "Success" : "Failure";
+    }
+
+    private void printMessage(String message, String messageId) {
+        StringBuilder messageDetails = new StringBuilder("Message Body: ")
+                .append(message).append(" & message id: ").append(messageId);
+        System.out.println(messageDetails.toString());
     }
 }
